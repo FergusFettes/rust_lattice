@@ -14,6 +14,8 @@ extern {
 }
 
 #[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, wasm-lattice-models!");
+pub fn greet(name: &str) {
+    let greet_string = format!("Hello {}!", name);
+
+    alert(&greet_string);
 }
