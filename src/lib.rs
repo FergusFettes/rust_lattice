@@ -87,10 +87,7 @@ impl Universe {
         self.cells = next;
     }
 
-    pub fn new() -> Universe {
-        let width = 64;
-        let height = 64;
-
+    pub fn new(width: u32, height: u32) -> Universe {
         // TODO: change for random start
         let cells = (0..width * height)
             .map(|i| {
