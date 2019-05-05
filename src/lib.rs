@@ -1,8 +1,9 @@
 mod utils;
+extern crate js_sys;
 
 use wasm_bindgen::prelude::*;
 use std::fmt;
-use rand::prelude::*;
+
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -22,7 +23,7 @@ pub enum Cell {
 pub struct Universe {
     width: u32,
     height: u32,
-    live_cell_percent: f64,
+    initial_density: f64,
     cells: Vec<Cell>,
 }
 
@@ -89,12 +90,10 @@ impl Universe {
         self.cells = next;
     }
 
-    pub fn new(width: u32, height: u32, live_cell_percent: f64) -> Universe {
-        let mut rng = thread_rng();
-
+    pub fn new(width: u32, height: u32, initial_density: f64) -> Universe {
         let cells = (0..width * height)
             .map(|_i| {
-                if rng.gen_bool(live_cell_percent) {
+                if js_sys::Math::random() < initial_density {
                     Cell::Alive
                 } else {
                     Cell::Dead
@@ -105,7 +104,7 @@ impl Universe {
         Universe {
             width,
             height,
-            live_cell_percent,
+            initial_density,
             cells,
         }
     }
@@ -122,8 +121,8 @@ impl Universe {
         self.height
     }
 
-    pub fn live_cell_percent(&self) -> f64 {
-        self.live_cell_percent
+    pub fn initial_density(&self) -> f64 {
+        self.initial_density
     }
 
     pub fn cells(&self) -> *const Cell {
@@ -144,3 +143,13 @@ impl fmt::Display for Universe {
         Ok(())
     }
 }
+
+// #[wasm_bindgen]
+// extern {
+//     fn alert(s: &str);
+// }
+
+// #[wasm_bindgen]
+// pub fn greet() {
+//     alert("Hello operator!");
+// }
