@@ -2,6 +2,7 @@ mod utils;
 
 use wasm_bindgen::prelude::*;
 use std::fmt;
+use rand::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -21,6 +22,7 @@ pub enum Cell {
 pub struct Universe {
     width: u32,
     height: u32,
+    live_cell_percent: f64,
     cells: Vec<Cell>,
 }
 
@@ -87,11 +89,12 @@ impl Universe {
         self.cells = next;
     }
 
-    pub fn new(width: u32, height: u32) -> Universe {
-        // TODO: change for random start
+    pub fn new(width: u32, height: u32, live_cell_percent: f64) -> Universe {
+        let mut rng = thread_rng();
+
         let cells = (0..width * height)
-            .map(|i| {
-                if i % 2 == 0 || i % 7 == 0 {
+            .map(|_i| {
+                if rng.gen_bool(live_cell_percent) {
                     Cell::Alive
                 } else {
                     Cell::Dead
@@ -102,6 +105,7 @@ impl Universe {
         Universe {
             width,
             height,
+            live_cell_percent,
             cells,
         }
     }
@@ -116,6 +120,10 @@ impl Universe {
 
     pub fn height(&self) -> u32 {
         self.height
+    }
+
+    pub fn live_cell_percent(&self) -> f64 {
+        self.live_cell_percent
     }
 
     pub fn cells(&self) -> *const Cell {
