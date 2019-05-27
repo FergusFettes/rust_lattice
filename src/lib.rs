@@ -1,10 +1,17 @@
 mod utils;
 extern crate js_sys;
 extern crate fixedbitset;
+extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 use fixedbitset::FixedBitSet;
 
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -28,7 +35,7 @@ impl Universe {
     // TODO: implement different neighbor counts for different wraparound styles.
     // TODO: implement different counts for cells at the edge and middle (or just do a completely
     // different implementation of life, such as tree-based?)
-        fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
+    fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
         let mut count = 0;
         for delta_row in [self.height - 1, 0, 1].iter().cloned() {
             for delta_col in [self.width - 1, 0, 1].iter().cloned() {
@@ -73,12 +80,22 @@ impl Universe {
                 let cell = self.cells[idx];
                 let live_neighbors = self.live_neighbor_count(row, col);
 
+                // log! (
+                //     "cell[{}, {}] is initially {:?} and has {} live neighbors",
+                //     row,
+                //     col,
+                //     cell,
+                //     live_neighbors
+                //     );
+
                 next.set(idx, match (cell, live_neighbors) {
                     (true, x) if x < 2 => false,
                     (true, x) if x > 3 => false,
                     (false, 3) => true,
                     (otherwise, _) => otherwise,
                 });
+
+                log! ("     it becomes {:?}", self.cells[idx])
             }
         }
 
@@ -86,7 +103,9 @@ impl Universe {
     }
 
     pub fn new() -> Universe {
-        let width = 128;
+        utils::set_panic_hook();
+
+        let width = 128; // default values
         let height = 128;
         let initial_density = 0.5;
 
