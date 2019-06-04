@@ -6,12 +6,12 @@ extern crate web_sys;
 use wasm_bindgen::prelude::*;
 use fixedbitset::FixedBitSet;
 
-// A macro to provide `println!(..)`-style syntax for `console.log` logging.
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
+// // A macro to provide `println!(..)`-style syntax for `console.log` logging.
+// macro_rules! log {
+//     ( $( $t:tt )* ) => {
+//         web_sys::console::log_1(&format!( $( $t )* ).into());
+//     }
+// }
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -23,6 +23,10 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub struct Universe {
     width: u32,
     height: u32,
+    // Each of the last 9 bits corresponds to a neighbor count that leads to life
+    alive_rules: u16,
+    // Each of the last 9 bits corresponds to a neighbor count that leads to death
+    dead_rules: u16,
     initial_density: f64,
     cells: FixedBitSet,
 }
@@ -32,9 +36,6 @@ impl Universe {
         (row * self.width + column) as usize
     }
 
-    // TODO: implement different neighbor counts for different wraparound styles.
-    // TODO: implement different counts for cells at the edge and middle (or just do a completely
-    // different implementation of life, such as tree-based?)
     fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
         let mut count = 0;
         for delta_row in [self.height - 1, 0, 1].iter().cloned() {
@@ -89,13 +90,12 @@ impl Universe {
                 //     );
 
                 next.set(idx, match (cell, live_neighbors) {
-                    (true, x) if x < 2 => false,
-                    (true, x) if x > 3 => false,
-                    (false, 3) => true,
-                    (otherwise, _) => otherwise,
+                    // This is checking if the number of neighbors is in the ruleset.
+                    (true, x) => ((self.alive_rules >> x) & 1) != 0,
+                    (false, x) => ((self.dead_rules >> x) & 1) != 0,
                 });
 
-                log! ("     it becomes {:?}", self.cells[idx])
+                // log! ("     it becomes {:?}", self.cells[idx])
             }
         }
 
@@ -109,6 +109,13 @@ impl Universe {
         let height = 128;
         let initial_density = 0.5;
 
+        let mut alive_rules = 0;
+        let mut dead_rules = 0;
+        let a = [2,3];
+        let d = [3];
+        for i in a.iter() {alive_rules = alive_rules | (1u16 << i)}
+        for i in d.iter() {dead_rules = dead_rules | (1u16 << i)}
+
         let size = (width*height) as usize;
         let mut cells = FixedBitSet::with_capacity(size);
 
@@ -119,9 +126,17 @@ impl Universe {
         Universe {
             width,
             height,
+            alive_rules,
+            dead_rules,
             initial_density,
             cells,
         }
+    }
+
+    /// Set the rules of the universe.
+    pub fn set_rules(&mut self, alive_rules: u16, dead_rules: u16) {
+        self.alive_rules = alive_rules;
+        self.dead_rules = dead_rules;
     }
 
     /// Set the width of the universe.
