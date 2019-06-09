@@ -101,12 +101,8 @@ impl Universe {
         let height = 128;
         let initial_density = 0.5;
 
-        let mut alive_rules = 0;
-        let mut dead_rules = 0;
-        let a = [2,3];
-        let d = [3];
-        for i in a.iter() {alive_rules = alive_rules | (1u16 << i)}
-        for i in d.iter() {dead_rules = dead_rules | (1u16 << i)}
+        let alive_rules = 12;
+        let dead_rules = 8;
 
         let size = (width*height) as usize;
         let mut cells = FixedBitSet::with_capacity(size);
