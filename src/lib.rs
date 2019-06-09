@@ -81,25 +81,17 @@ impl Universe {
                 let cell = self.cells[idx];
                 let live_neighbors = self.live_neighbor_count(row, col);
 
-                // log! (
-                //     "cell[{}, {}] is initially {:?} and has {} live neighbors",
-                //     row,
-                //     col,
-                //     cell,
-                //     live_neighbors
-                //     );
-
                 next.set(idx, match (cell, live_neighbors) {
                     // This is checking if the number of neighbors is in the ruleset.
                     (true, x) => ((self.alive_rules >> x) & 1) != 0,
                     (false, x) => ((self.dead_rules >> x) & 1) != 0,
                 });
 
-                // log! ("     it becomes {:?}", self.cells[idx])
             }
         }
 
         self.cells = next;
+        // log! ("Update succesful!")
     }
 
     pub fn new() -> Universe {
