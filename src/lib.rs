@@ -101,7 +101,7 @@ impl Universe {
         let height = 128;
         let initial_density = 0.5;
 
-        let alive_rules = 12;
+        let alive_rules = 12; // default is conway
         let dead_rules = 8;
 
         let size = (width*height) as usize;
